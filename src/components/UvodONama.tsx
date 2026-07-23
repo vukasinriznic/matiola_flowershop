@@ -38,9 +38,10 @@ import { site } from "@/lib/site";
  * klasa), skrol se ne prati — odmah puna slika, veo i sav tekst vidljiv,
  * a potpis/nagoveštaj skrola su sakriveni (nemaju čemu da vode).
  *
- * Fotografija: public/o_nama.jpeg (buketi u radnji) je snimljena uspravno
- * (EXIF orientation 6, brauzer je sam rotira u portret); `object-cover` je
- * kadrira u viewport.
+ * Fotografija: public/o_nama.jpeg (buketi u radnji) je uspravan portret;
+ * `object-cover` je kadrira u viewport. (Original je bio landscape sa EXIF
+ * orientation 6 — rotacija je upečena u piksele pri optimizaciji, pa fajl
+ * više ne zavisi od EXIF-a i lakši je ~6×.)
  */
 const POCETNA_RAZMERA = 2 / 3;
 /* Iza vela: spori zum + paralaksa naviše. Zum 1 → 1.08 daje 4vh „viška" slike
