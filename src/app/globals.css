@@ -1,26 +1,669 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+  Cvećara Matiola — design system
+  Paleta „B — bezbojno + jedan akcent" (izabrao Vukašin 18.07.2026).
+
+  UI je namerno bez boje: podloga topla skoro-bela, tekst near-black, sekcije
+  tople sive. Boju na stranicu donose FOTOGRAFIJE BUKETA i hero video — ne
+  interfejs. Jedina obojena stvar je akcent `#B04A5F` (prigušena ruža), i on
+  nosi poziv telefonom, aktivne linkove i hover stanja.
+
+  Zašto ovako: merenjem 12 kadrova hero videa utvrđeno je da je 42,7% piksela
+  neutralno, prosečna svetlina 62,5%, a boje koje postoje (plava 180–210°,
+  roze 330–350°) sve sede na 21–34% zasićenja. Ranija crveno/roze paleta
+  (#CC313D / #F7C5CC, 62% i 74% zasićenja) bila je 2–3x jača od svega u videu i
+  vidno se tukla s njim. PRAVILO: što je površina veća, zasićenje mora biti niže.
+
+  Svi parovi teksta i podloge verifikovani računski na WCAG AA (>=4.5:1 za
+  tekst, >=3:1 za granice/grafiku). Ne menjati vrednosti bez ponovne provere.
+*/
+
+@theme {
+  /* Podloge i tekst — šema „1 Pudrasta" (izabrao Vukašin 18.07.2026) */
+  --color-canvas: #fffcfd; /* skoro-bela sa dahom roze */
+  --color-ink: #2b1318; /* osnovni tekst — topla crno-ruža, nagnuta ka akcentu; isti ton kao hero naslov. 17.0:1 canvas, 15.5:1 sekcija */
+  --color-card: #ffffff; /* kartice — čisto bele, zbog fotografija */
+  --color-sekcija: #fbeff1; /* meka pudrasta roze — podloga izdvojenih sekcija */
+  --color-sekcija-jaka: #f4d6dd; /* dublja roze — CTA blok, korak ka akcentu (kreščendo: canvas → sekcija → sekcija-jaka → akcent). ink 12.6:1 */
+
+  /* Akcent — dublja ruža. NE spuštati je ka mekoj roze: belo na njoj mora da
+     drži 4.5:1, a već #BF5B70 pada na 4.25. Vidi ogradu u DIZAJN.md. */
+  --color-akcent: #b04a5f; /* CTA, linkovi — 5.16:1 canvas, 4.69:1 sekcija */
+  --color-akcent-tamni: #8e3a4c; /* tamnija ruža — 7.34:1 na belom */
+
+  /* Neutralne */
+  --color-tiho-tekst: #5f5a57; /* sporedni tekst — 6.7:1 canvas, 6.1:1 sekcija */
+  --color-granica: #f0dce0; /* dekorativna granica (roze) */
+  --color-granica-jaka: #726b65; /* granica kontrola — 5.1:1 canvas, 4.7:1 sekcija */
+  --color-zelen: #4a6b54; /* botanička grafika — 5.9:1 canvas, 5.3:1 sekcija */
+
+  /* Sistemske */
+  --color-greska: #b3261e;
+  --color-uspeh: #3f6212;
+
+  /* Tipografija */
+  --font-naslov: var(--font-naslov-font), Georgia, serif;
+  --font-telo: var(--font-inter), system-ui, sans-serif;
+
+  /* Radijusi */
+  --radius-nezno: 2px;
+  --radius-meko: 4px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-telo);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-naslov);
+    font-weight: 400; /* naslovni font nosi eleganciju oblikom, ne debljinom */
+    letter-spacing: -0.01em;
+  }
+
+  /* Vidljiv fokus za tastaturu na celom sajtu */
+  :focus-visible {
+    outline: 2px solid var(--color-akcent);
+    outline-offset: 2px;
+  }
+
+  /* Poštuj korisnike koji su isključili animacije */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Nagoveštaj skrola u hero-u — tanka crta koja se izdužuje naniže */
+@keyframes hero-strelica {
+  0% {
+    transform: scaleY(0.2);
+    transform-origin: top;
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    transform-origin: top;
+    opacity: 0;
+  }
 }
+
+/* Naslov, reč po reč — „izoštravanje": zamućeno + umanjeno + malo niže, pa se
+   izoštri i slegne. Prati stakleni cvet (mutno staklo → fokus). */
+@keyframes hero-fokus {
+  from {
+    opacity: 0;
+    transform: translateY(0.4em) scale(0.92);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Nadnaslov — „tracking-in": slova se razmiču iz zbijenog u konačni razmak.
+   Krajnji letter-spacing (0.18em) se poklapa sa .nadnaslov bazom. */
+@keyframes hero-nadnaslov {
+  from {
+    opacity: 0;
+    letter-spacing: 0.02em;
+    transform: translateY(0.4em);
+  }
+  to {
+    opacity: 1;
+    letter-spacing: 0.18em;
+    transform: translateY(0);
+  }
+}
+
+/* Dugmad — „pop": dizanje odozdo preko CSS `translate` propertija (NE
+   `transform`), pa magnetni nagib (.dugme-tecno transform) ostaje slobodan i
+   ne biva zamrznut fill-forwards-om. Easing ima blag prebačaj. */
+@keyframes hero-dugme {
+  from {
+    opacity: 0;
+    translate: 0 1.1em;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* Nav — samo opacity na load (traženo). */
+@keyframes hero-nav {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* „Skrolujte" nagoveštaj — fade + blag pad, ulazi poslednji. */
+@keyframes hero-skrol {
+  from {
+    opacity: 0;
+    transform: translateY(-0.4em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ulaz fotografije na „O nama" — „diše" unutra: providna i sa malim viškom
+   skale, pa se slegne. Bez blur-a: fotografija je preko celog ekrana, blur na
+   toj površini je skup na telefonu (za razliku od hero reči, koje su male). */
+@keyframes onama-slika {
+  from {
+    opacity: 0;
+    transform: scale(1.045);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/*
+  Paralaks slike u pločici kategorije. Sloj sa slikom je 20% viši od pločice i
+  prelazi joj preko oba ruba (-10% gore i dole), pa ima 10% zaliha na svaku
+  stranu. Kroz taj zapas kliza dok pločica prolazi kroz vidno polje: naniže se
+  otkriva donji deo fotografije, naviše gornji.
+
+  Krajnje vrednosti (±8.333%) su u odnosu na VISINU SLOJA, ne pločice:
+  10% pločice / 120% pločice = 8.333%. Zato na oba kraja sloj tačno pokriva
+  pločicu, bez proreza — proveriti račun ako se visina sloja menja.
+
+  Pomera `translate`, a ne `transform`, jer zum na hover koristi `scale` —
+  odvojena svojstva se ne gaze (isto pravilo kao kod .dugme-tecno).
+*/
+@keyframes kat-paralaks {
+  from {
+    translate: 0 8.333%;
+  }
+  to {
+    translate: 0 -8.333%;
+  }
+}
+
+@layer components {
+  /*
+    Vezano za POZICIJU SKROLA, ne za vreme — zato se pri skrolu naviše samo
+    odvrti unazad, umesto da krene iznova. Radi uz Lenis jer je on u `root`
+    režimu, tj. vozi pravi skrol prozora.
+
+    Tajmlajn je IMENOVAN, i to je suština: bezimeni `view()` traži najbliži
+    skrol-kontejner iznad sebe, a pločica ima `overflow: hidden` — što po CSS-u
+    JESTE skrol-kontejner. Tajmlajn bi se zato vezao za samu pločicu, koja se
+    nikad ne skroluje, pa animacija stoji na nuli i ništa se ne vidi (tako je i
+    bilo iz prve). Ime se objavljuje na pločici, a ona se meri u odnosu na
+    prozor, jer njen sopstveni overflow za nju samu ne važi.
+
+    @supports je obavezan: bez podrške za tajmlajnove ostala bi obična vremenska
+    animacija trajanja 0s, koja bi odmah skočila na krajnji kadar i tamo stala
+    (slika bi bila trajno pomerena za 10%). Ovako u Firefoxu prosto nema
+    paralaksa, a kadar je onaj koji je izmeren u site.ts.
+  */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .kat-plocica {
+        view-timeline-name: --kat-plocica;
+      }
+
+      .kat-paralaks {
+        animation: kat-paralaks linear both;
+        animation-timeline: --kat-plocica;
+      }
+    }
+  }
+
+  /*
+    CTA „materijal" — premium bez ijednog crteža, kroz površinu i svetlo:
+    - `background-image` radijalni sjaj: meko svetlo iza naslova, kao da je
+      sekcija blago osvetljena u sredini (dubina umesto ravne boje);
+    - `box-shadow` inset: tanka svetla linija na gornjoj ivici (materijal hvata
+      svetlo) i jedva vidljiva akcentna na donjoj (seat u footer).
+    Podloga ostaje dublja roze (sekcija-jaka) — kreščendo se ne dira.
+  */
+  .cta-materijal {
+    background-color: var(--color-sekcija-jaka);
+    background-image: radial-gradient(
+      ellipse 62% 55% at 50% 36%,
+      rgba(255, 252, 253, 0.6) 0%,
+      rgba(255, 252, 253, 0) 68%
+    );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -1px 0 rgba(176, 74, 95, 0.1);
+  }
+
+  /*
+    Papirnato zrno preko podloge — STATIČNA SVG-noise data-URI (feTurbulence,
+    desaturisana), tiled 140px, na 5% da se jedva nasluti. Daje matiran „papir"
+    ton umesto plastično ravne boje. Statično = jeftino na telefonu, nije
+    animacija pa `reduced-motion` ne dira.
+  */
+  .cta-zrno {
+    background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='140'%20height='140'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.85'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='saturate'%20values='0'/%3E%3C/filter%3E%3Crect%20width='140'%20height='140'%20filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.05;
+  }
+
+  .hero-strelica {
+    animation: hero-strelica 2s ease-in-out infinite;
+  }
+
+  /*
+    Scroll-reveal (Otkrij.tsx) — vezivna nit koja spušta potpis hero-a niz
+    stranu. Sadržaj se otkrije kad uđe u vidno polje: osnovna varijanta samo
+    podigne + fade (jeftino, GPU — koristi se po karticama), `.otkrij-fokus`
+    dodaje blur→izoštravanje kao hero naslov (samo za malo elemenata: naslove).
+    IntersectionObserver dodaje `.otkrij--vidljivo`. Reduced-motion: odmah vidljivo.
+  */
+  .otkrij {
+    opacity: 0;
+    transform: translateY(1.25rem);
+    transition:
+      opacity 720ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      transform 720ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .otkrij-fokus {
+    filter: blur(6px);
+    transition:
+      opacity 760ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      transform 760ms cubic-bezier(0.2, 0.7, 0.2, 1),
+      filter 760ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .otkrij--vidljivo {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .otkrij,
+    .otkrij-fokus {
+      opacity: 1;
+      transform: none;
+      filter: none;
+      transition: none;
+    }
+  }
+
+  /*
+    Ulazne animacije hera — čist CSS, bez JS-gejta (da nema treptaja pre
+    hidracije). Sadržaj se uvodi jednom, redom preko `--kasni` (per element):
+    nadnaslov → naslov (reč po reč) → dugmad. Kašnjenja se postavljaju inline
+    u Hero.tsx. Reduced-motion override je niže — tada sve odmah u finalu.
+  */
+  /* Nadnaslov hera — tracking-in. */
+  .hero-uvod-nadnaslov {
+    opacity: 0;
+    animation: hero-nadnaslov 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--kasni, 0ms);
+  }
+
+  /* Reč naslova — izoštravanje. inline-block da transform/blur rade po reči i
+     da razmak među rečima ostane. Bez overflow-a: dijakritici (č/ć/š/ž) i
+     silazno „j" ostaju celi. */
+  .hero-rec {
+    display: inline-block;
+    opacity: 0;
+    animation: hero-fokus 720ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--kasni, 0ms);
+    will-change: transform, filter, opacity;
+  }
+
+  /* Dugmad — pop. Anima dira SAMO opacity + `translate` (ne `transform`), pa
+     magnetni nagib (.dugme-tecno transform) i `scale` (:active) ostaju celi. */
+  .hero-uvod-dugme {
+    opacity: 0;
+    animation: hero-dugme 640ms cubic-bezier(0.34, 1.4, 0.5, 1) both;
+    animation-delay: var(--kasni, 0ms);
+  }
+
+  /* Nav — opacity fade na load. Anima ide na DECU nava (logo, linkovi, dugme),
+     NIKAD na sam nav ni na neki njegov predak: element sa opacity-animacijom
+     postaje „backdrop root", pa `backdrop-filter` na pilули uzima prazan
+     backdrop → pilula ispadne providna, bez blura. Sa fill-mode `both` anima
+     ostaje „in effect" i posle kraja, pa bi pilula ostala bez blura zauvek. */
+  .hero-uvod-nav > * {
+    opacity: 0;
+    animation: hero-nav 800ms ease both;
+    animation-delay: var(--kasni, 0ms);
+  }
+
+  /* „Skrolujte" nagoveštaj — ulazi poslednji, na unutrašnjem sloju (spoljni
+     drži opacity vezan za skrol, vidi Hero.tsx). */
+  .hero-uvod-skrol {
+    opacity: 0;
+    animation: hero-skrol 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--kasni, 0ms);
+  }
+
+  /* Reduced-motion: preskoči ulaz, sve odmah u finalnom stanju. (Globalni
+     reduced-motion samo skrati trajanje, ali NE i `animation-delay`, pa bi
+     elementi inače snapovali posle svojih kašnjenja — zato eksplicitno, uz
+     reset transform/translate/filter na nulu.) */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-uvod-nadnaslov,
+    .hero-rec {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
+    .hero-uvod-dugme {
+      animation: none !important;
+      opacity: 1 !important;
+      translate: none !important;
+    }
+    .hero-uvod-nav > * {
+      animation: none !important;
+      opacity: 1 !important;
+    }
+    .hero-uvod-skrol {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
+  /*
+    Ulazne animacije strane „O nama" (UvodONama.tsx) — isti obrazac kao hero:
+    čist CSS bez JS-gejta, red preko `--kasni` inline. Fotografija „diše"
+    unutra, pa potpis radnje sa nagoveštajem skrola ulazi poslednji.
+
+    Skala ulaza ide na SAM <img>, NE na omotač slike — omotačev transform drži
+    JS scrub (rast 2/3 → pun ekran), pa bi se animacija i scrub gazili.
+    Potpis: isto razdvajanje kao „Skrolujte" u hero-u — spoljni sloj drži
+    opacity vezan za skrol (JS), unutrašnji radi load-ulaz.
+  */
+  .onama-uvod-slika {
+    opacity: 0;
+    animation: onama-slika 1100ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--kasni, 0ms);
+    will-change: transform, opacity;
+  }
+
+  .onama-uvod-potpis {
+    opacity: 0;
+    animation: hero-skrol 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--kasni, 0ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .onama-uvod-slika,
+    .onama-uvod-potpis {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
+  /*
+    Ulaz strana bez hero-a (Buketi, Kontakt) — isti potpis kao hero, iz istih
+    keyframe-ova: nadnaslov tracking-in, naslov blur→fokus, blokovi sadržaja
+    fade + blago podizanje. Redosled preko `--kasni` inline, bez JS-gejta.
+    Blok diže `translate` (ne `transform`) — isti razlog kao hero dugmad:
+    unutra mogu stajati elementi sa svojim transform-om (dugme-tecno nagib).
+  */
+  .strana-uvod-nadnaslov {
+    opacity: 0;
+    animation: hero-nadnaslov 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--kasni, 0ms);
+  }
+
+  .strana-uvod-naslov {
+    opacity: 0;
+    animation: hero-fokus 720ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--kasni, 0ms);
+    will-change: transform, filter, opacity;
+  }
+
+  .strana-uvod-blok {
+    opacity: 0;
+    animation: hero-dugme 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--kasni, 0ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .strana-uvod-nadnaslov,
+    .strana-uvod-naslov {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
+    .strana-uvod-blok {
+      animation: none !important;
+      opacity: 1 !important;
+      translate: none !important;
+    }
+  }
+
+  /* Sitni verzal nadnaslov — ponavlja se kroz sekcije */
+  .nadnaslov {
+    font-family: var(--font-telo);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-tiho-tekst);
+  }
+
+  /*
+    CTA dugme — pilula sa slojevitim hover-om. Dve varijante, OBE sa BELIM
+    tekstom (tako je traženo), pa obe moraju imati tamnu podlogu — otud nema
+    „belo dugme sa obrisom": beo tekst na beloj podlozi se ne vidi.
+
+    - PODRAZUMEVANA (puna ruža): gradijent #BC5569 → #9C4054, beo tekst.
+      Popuna na hover je BELA, pa tekst prelazi u ruža (belo na belom bi
+      nestalo). Ovo je „Pozovi".
+    - `.dugme-tecno--obris`: bela podloga, ruža border i tekst. Popuna na
+      hover je RUŽA, tekst prelazi u belo. Ogledalo prve varijante.
+
+    Gradijent stopovi su najživlji koji drže belo na WCAG AA (4.52:1).
+
+    OBE varijante imaju BEO tekst u jednom stanju i ruža u drugom — tekst se
+    prebacuje sa kašnjenjem 190ms da ne promeni boju pre nego što ga popuna
+    stigne (u međukoraku bi kontrast pao).
+
+    Slojevi (tekst je .dt-oznaka, z-index 1 iznad svega):
+    - ::before = krug popune koji se diže odozdo na hover („button 11"/calypso);
+    - ::after  = sheen sweep (traka svetla) na hover;
+    - `transform` rotacija = magnetni nagib ka kurzoru (useMagnetniNagib.ts,
+      JS, samo na mišu; na dodiru mirno).
+
+    Žele „squish" (dt-zele) je UKLONJEN 18.07.2026 na Vukašinov zahtev —
+    ne vraćati ga. `scale` ostaje samo kao kratko stiskanje na :active.
+  */
+  .dugme-tecno {
+    --dt-a: #bc5569;
+    --dt-b: #9c4054;
+    --dt-fill: #ffffff;
+    --dt-tekst: #ffffff;
+    --dt-tekst-hover: var(--color-akcent);
+    --dt-glow: rgba(176, 74, 95, 0.45);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    /* Oblik: puna pilula. Oblik je ovde, ne u markup-u — `rounded-full` iz
+       Tailwind-a bi ga pregazio (utilities sloj pobeđuje components). */
+    border-radius: 9999px;
+    background: linear-gradient(150deg, var(--dt-a), var(--dt-b));
+    /* Bez bele „staklene" ivice i gornjeg odsjaja — uklonjeni 18.07.2026 na
+       zahtev (videli su se kao čudan svetli border oko dugmeta). Ostaje samo
+       obojena aura ispod dugmeta. */
+    box-shadow: 0 6px 18px -6px var(--dt-glow);
+    transform:
+      perspective(700px)
+      rotateX(var(--dt-rx, 0deg))
+      rotateY(var(--dt-ry, 0deg));
+    scale: var(--dt-scale, 1);
+    transition:
+      transform 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      scale 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 200ms ease;
+  }
+
+  /* Obris varijanta — bela pilula sa roze borderom i roze tekstom; popuna na
+     hover je roze, pa tekst prelazi u belo. Tačno ogledalo podrazumevane
+     varijante. Border je inset senka (ne `border`), da ne pomera unutrašnje
+     dimenzije i da ostane iznad ::before popune po obodu. */
+  .dugme-tecno--obris {
+    --dt-fill: var(--color-akcent);
+    --dt-tekst: var(--color-akcent);
+    --dt-tekst-hover: #ffffff;
+    --dt-glow: rgba(176, 74, 95, 0.26);
+    background: #ffffff;
+    box-shadow: 0 6px 18px -6px var(--dt-glow);
+  }
+
+  .dugme-tecno > .dt-oznaka {
+    position: relative;
+    z-index: 1;
+    color: var(--dt-tekst);
+    transition: color 200ms ease;
+  }
+
+  /* Tekst pređe u drugu boju kad ga popuna stigne (kašnjenje 190ms — bez
+     njega bi kontrast pao u međukoraku, npr. belo na beloj popuni).
+     Ostaje tako dok traje hover; pri napuštanju se vraća odmah. */
+  .dugme-tecno:hover > .dt-oznaka {
+    color: var(--dt-tekst-hover);
+    transition-delay: 190ms;
+  }
+
+  /*
+    „Button 11" (calypso): krug boje koji se diže odozdo.
+    (Oblik latice je probavan 18.07.2026 i vraćen na krug na zahtev.)
+
+    ⚠️ Veličina 140% NIJE proizvoljna. Popuna mora da prekrije dugme 100%, jer
+    tekst u tom trenutku menja boju — gde popuna ne stigne, tekst bi nestao
+    (npr. ruža tekst na ruža gradijentu). Provereno računski i empirijski u
+    brauzeru na sve četiri veličine dugmeta (hero 239 i 201px, mobilni 327px,
+    nav 96px). Raniji krug na 120% je padao na mobilnom — 97.9%, uglovi punog
+    dugmeta nisu bili pokriveni. Pri promeni veličine, ponoviti proveru.
+  */
+  .dugme-tecno::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: -20%;
+    top: -125%;
+    width: 140%;
+    height: 0;
+    padding-bottom: 140%;
+    border-radius: 50%;
+    background: var(--dt-fill);
+    transform: translate3d(0, 68%, 0) scale3d(0, 0, 0);
+    transition: transform 600ms cubic-bezier(0.1, 0, 0.3, 1);
+    pointer-events: none;
+  }
+
+  /*
+    Popuna se digne odozdo i STOJI dok je kursor na dugmetu; kad kursor izađe,
+    vrati se nadole (ista tranzicija unazad). Identično kod obe varijante —
+    razlikuje se samo boja (`--dt-fill`): kod obrisa roze, kod pune bela.
+
+    Namerno je `transition`, a NE keyframe animacija: animacija bi se odvrtela
+    do kraja bez obzira na kursor. Probano 18.07.2026 (belo je prolazilo naviše
+    i izlazilo) — Vukašin je tražio da stoji i čeka, pa je vraćeno.
+  */
+  .dugme-tecno:hover::before {
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+  }
+
+  /*
+    ::after je BORDER kod obe varijante — isti ring, ista geometrija.
+    Zašto ne `inset` senka na samom dugmetu: ona se slika uz pozadinu, dakle
+    ISPOD ::before popune, pa je popuna prekrije i border nestane čim krene
+    hover. ::after se slika posle ::before, pa ring ostaje vidljiv i preko
+    popune — i kod obrisa i dok belo prelazi preko punog dugmeta.
+    Sheen sweep je zbog ovoga uklonjen (::after je bio njegov).
+  */
+  .dugme-tecno::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1.5px var(--color-akcent);
+    pointer-events: none;
+  }
+
+  .dugme-tecno:hover {
+    box-shadow: 0 12px 28px -6px var(--dt-glow);
+  }
+
+  /* Pozadina dugmeta se NE menja na hover — ruža ostaje ispod bele popune, pa
+     se na izlazak kursora ukaže čim se popuna spusti. Raniji trik sa zamenom
+     pozadine (`background 0s 430ms`) je uklonjen: pravio je da dugme trajno
+     ostane belo. Tanku ivicu koju je krpio sada pokriva ring na ::after. */
+
+  .dugme-tecno:active {
+    scale: 0.96;
+  }
+
+  /* Nav „roll" — na hover se labela otkotrlja nagore, duplikat uđe odozdo
+     (mask + dva reda), po uzoru na tealfather nav. */
+  .nav-roll {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    line-height: 1.3;
+    height: 1.3em;
+    vertical-align: bottom;
+  }
+
+  /* `will-change` je ovde OBAVEZAN, nije mikro-optimizacija: nav ima
+     backdrop-filter, a hover pokreće transform unutar njega. Bez trajnog
+     sloja Chrome na svaki hover pravi/ruši composited layer, pa iznova gradi
+     render surface za backdrop root — a u tom prelasku video u herou i beli
+     zastor iznad njega zamene redosled slikanja, pa ceo hero potamni dok je
+     kursor na linku. Sa stalnim slojem se layer tree ne menja i treptaja nema. */
+  .nav-roll-inner {
+    display: block;
+    transition: transform 400ms cubic-bezier(0.2, 0.7, 0.2, 1);
+    will-change: transform;
+  }
+
+  .nav-roll-line {
+    display: block;
+    height: 1.3em;
+  }
+
+  .nav-veza:hover .nav-roll-inner,
+  .nav-veza:focus-visible .nav-roll-inner {
+    transform: translateY(-50%);
+  }
+}
+

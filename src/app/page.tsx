@@ -1,65 +1,125 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Hero } from "@/components/Hero";
+import { Otkrij } from "@/components/Otkrij";
+import { BuketKartica } from "@/components/BuketKartica";
+import { BuketIzdvojen } from "@/components/BuketIzdvojen";
+import { KategorijaPlocica } from "@/components/KategorijaPlocica";
+import { PozivDugme } from "@/components/PozivDugme";
+import { RadnoStanje } from "@/components/RadnoStanje";
+import { istaknutiBuketi } from "@/lib/buketi";
+import { kategorije, site } from "@/lib/site";
 
-export default function Home() {
+export default async function Pocetna() {
+  const istaknuti = await istaknutiBuketi();
+  const [prviIstaknut, ...ostaliIstaknuti] = istaknuti;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="flex-1">
+      <Hero />
+
+      {/* Istaknuti buketi */}
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <Otkrij fokus>
+          <div className="mb-10 flex items-end justify-between gap-6">
+            <div className="space-y-2">
+              <p className="nadnaslov">Izdvojeno</p>
+              <h2 className="font-naslov text-4xl text-ink">
+                Buketi ovog meseca
+              </h2>
+            </div>
+            <Link
+              href="/buketi"
+              className="hidden shrink-0 text-sm text-akcent transition-colors duration-200 hover:text-akcent-tamni sm:block"
+            >
+              Svi buketi →
+            </Link>
+          </div>
+        </Otkrij>
+
+        {prviIstaknut && (
+          <Otkrij>
+            <BuketIzdvojen buket={prviIstaknut} />
+          </Otkrij>
+        )}
+
+        {ostaliIstaknuti.length > 0 && (
+          <div className="mt-16 grid gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+            {ostaliIstaknuti.map((b, i) => (
+              <Otkrij key={b.id} kasnjenje={i * 90}>
+                <BuketKartica buket={b} />
+              </Otkrij>
+            ))}
+          </div>
+        )}
+
+        <Link
+          href="/buketi"
+          className="mt-10 block text-sm text-akcent transition-colors duration-200 hover:text-akcent-tamni sm:hidden"
+        >
+          Svi buketi →
+        </Link>
+      </section>
+
+      {/* Kategorije */}
+      <section className="border-y border-granica bg-sekcija">
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <Otkrij fokus>
+            <div className="mb-10 space-y-2">
+              <p className="nadnaslov">Za svaku priliku</p>
+              <h2 className="font-naslov text-4xl text-ink">Šta vam treba?</h2>
+            </div>
+          </Otkrij>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            {kategorije.map((k, i) => (
+              <Otkrij key={k.slug} kasnjenje={(i % 3) * 80}>
+                <KategorijaPlocica
+                  slug={k.slug}
+                  naziv={k.naziv}
+                  indeks={i}
+                  slika={k.slika}
+                  fokus={k.fokus}
+                />
+              </Otkrij>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Poziv na akciju — premium kroz MATERIJAL i tipografiju, bez ijednog
+          crteža. Dublja roze podloga (sekcija-jaka) sa mekim unutrašnjim sjajem
+          i papirnatim zrnom (.cta-materijal / .cta-zrno u globals.css); veliki
+          serif, mnogo vazduha, i jedan diskretan detalj — tanke crtice oko
+          nadnaslova. Presudan blok pred footerom, uliva se u njega. */}
+      <section className="cta-materijal relative overflow-hidden">
+        <div
+          aria-hidden="true"
+          className="cta-zrno pointer-events-none absolute inset-0"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+
+        <div className="relative mx-auto max-w-3xl px-6 py-28 text-center sm:py-32">
+          <Otkrij fokus>
+            {/* Diskretan detalj — nadnaslov uokviren tankim crticama. */}
+            <div className="flex items-center justify-center gap-3">
+              <span className="h-px w-8 bg-akcent/30" aria-hidden="true" />
+              <p className="nadnaslov">Po vašoj želji</p>
+              <span className="h-px w-8 bg-akcent/30" aria-hidden="true" />
+            </div>
+            <h2 className="mx-auto mt-5 max-w-xl font-naslov text-[2.5rem] leading-[1.08] text-ink sm:text-6xl">
+              Da složimo nešto samo za vas?
+            </h2>
+            <p className="mx-auto mt-6 max-w-lg text-lg leading-relaxed text-tiho-tekst">
+              Recite nam povod i koga darujete. Cveće, boje i veličinu biramo
+              zajedno, telefonom ili u radnji.
+            </p>
+            <PozivDugme className="dugme-tecno mt-10 inline-block px-9 py-4.5 text-base font-medium">
+              <span className="dt-oznaka">Pozovi {site.telefonPrikaz}</span>
+            </PozivDugme>
+            <div className="mt-6 flex justify-center">
+              <RadnoStanje />
+            </div>
+          </Otkrij>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }
