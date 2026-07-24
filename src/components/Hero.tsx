@@ -77,11 +77,17 @@ export function Hero() {
     const jeStaticno = reduced || dodir;
     setStaticno(jeStaticno);
 
-    // Statično → nema videa (renderuje se slika otvorenog cveta), nema scrub-a.
+    // Statično (dodir/reduced) → CSS je već sakrio video i pokazao sliku;
+    // scrub se ne postavlja, a video se NE učitava (preload ostaje „none").
     if (jeStaticno) return;
 
     const v = videoRef.current;
     if (!v) return;
+
+    // Desktop: tek sada uključi učitavanje videa (SSR ga renderuje sa
+    // preload="none" da mobilni ne povuče 2.2MB pre nego što CSS/JS odluče).
+    v.preload = "auto";
+    v.load();
 
     const spremiTrajanje = () => setTrajanje(v.duration || 0);
     if (v.readyState >= 1) spremiTrajanje();
@@ -127,7 +133,7 @@ export function Hero() {
   return (
     <section ref={stazaRef} className="relative hero-staza">
       {/* Lepljivi sloj — ostaje na ekranu dok se kroz stazu skroluje */}
-      <div className="sticky top-0 flex h-dvh items-center overflow-hidden">
+      <div className="hero-lepljivi sticky top-0 flex h-dvh items-center overflow-hidden">
         {/* Video pozadina.
             `isolate`: video je composited sloj, a dva zastora iznad njega nisu.
             Nav ima backdrop-filter, pa se pri svakoj promeni njegovog layer
@@ -136,32 +142,30 @@ export function Hero() {
             dok je kursor na navu. Zaseban stacking context spljošti video i
             zastore u jednu grupu, pa im se redosled ne može promeniti. */}
         <div className="absolute inset-0 -z-10 isolate">
-          {/* Statično (dodir/reduced-motion) → slika otvorenog cveta, BEZ
-              učitavanja 2.2MB videa. Desktop → scrub video. `staticno` kreće
-              false (SSR), pa se posle mount-a na mobilnom video demontira i
-              prekida eventualni fetch. */}
-          {staticno ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src="/hero_open.jpg"
-              alt=""
-              aria-hidden="true"
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <video
-              ref={videoRef}
-              className="h-full w-full object-cover"
-              muted
-              playsInline
-              preload="auto"
-              poster="/hero_start.jpg"
-              aria-hidden="true"
-            >
-              {/* all-intra, skraćen na sam deo otvaranja — glatko premotavanje na skrol */}
-              <source src="/hero_scrub.mp4" type="video/mp4" />
-            </video>
-          )}
+          {/* Slika otvorenog cveta (dodir/reduced) i scrub video (desktop) su
+              OBA u DOM-u; koji se vidi bira CSS media upit (.hero-slika /
+              .hero-video) — bez JS swap-a, pa nema hidracionog treptaja/zuma.
+              Video ide preload="none" da mobilni ne povuče 2.2MB; desktop ga
+              uključi u efektu (v.load()). */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/hero_open.jpg"
+            alt=""
+            aria-hidden="true"
+            className="hero-slika absolute inset-0 h-full w-full object-cover"
+          />
+          <video
+            ref={videoRef}
+            className="hero-video h-full w-full object-cover"
+            muted
+            playsInline
+            preload="none"
+            poster="/hero_start.jpg"
+            aria-hidden="true"
+          >
+            {/* all-intra, skraćen na sam deo otvaranja — glatko premotavanje na skrol */}
+            <source src="/hero_scrub.mp4" type="video/mp4" />
+          </video>
 
           {/* Zastor — MERENO, ne procenjivano. U centralnoj zoni videa ima i
               vrlo tamnih piksela (luminansa 0.032), pa ink tekst bez zastora

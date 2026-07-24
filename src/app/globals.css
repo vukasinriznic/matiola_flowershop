@@ -479,9 +479,26 @@
   .hero-staza {
     height: 200vh;
   }
+  /* Izbor slika/video ide preko CSS-a (ne JS-a) da NE bude hidracionog swap-a:
+     na desktopu se vidi video (scrub), na dodiru/reduced statična slika
+     otvorenog cveta. Oba su u DOM-u; media upit odlučuje šta se prikazuje. */
+  .hero-slika {
+    display: none;
+  }
   @media (prefers-reduced-motion: reduce), (pointer: coarse) {
+    /* svh (a ne dvh): stabilna visina — ne „diše" dok se URL bar telefona
+       skuplja/širi, pa slika ne poskakuje/zumira na skrol. */
     .hero-staza {
-      height: 100dvh;
+      height: 100svh;
+    }
+    .hero-lepljivi {
+      height: 100svh;
+    }
+    .hero-slika {
+      display: block;
+    }
+    .hero-video {
+      display: none;
     }
     /* „Skrolujte" nagoveštaj nema čemu da vodi kad je scrub isključen. */
     .hero-nagovestaj {

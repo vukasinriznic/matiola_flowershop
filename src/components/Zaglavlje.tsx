@@ -147,27 +147,30 @@ export function Zaglavlje() {
             aria-label={otvoren ? "Zatvori meni" : "Otvori meni"}
             className={`-mr-1 cursor-pointer p-2 text-ink transition-colors duration-200 md:hidden${halo}`}
           >
-            {/* Tri crtice koje se glatko presavijaju u „X": gornja i donja se
-                spuste u centar i zarotiraju (±45°), srednja izbledi. Flex-column
-                drži razmak, pa transform (translate+rotate) ostaje slobodan za
-                animaciju — nema sukoba sa centriranjem. */}
-            <span
-              aria-hidden="true"
-              className="flex h-3.5 w-6 flex-col justify-between"
-            >
+            {/* Tri crtice → „X". Apsolutno pozicioniranje: gornja i donja se
+                obe slegnu na TAČAN centar (top-1/2 + -translate-y-1/2) i
+                zarotiraju ±45°, pa se ukrste u čist X; srednja izbledi. Ranija
+                flex+translate verzija ih nije dovodila do istog centra, pa je
+                ispadala zvezda. `-translate-y-1/2` (translate) i `rotate` su
+                različita CSS svojstva — ne gaze se. */}
+            <span aria-hidden="true" className="relative block h-4 w-6">
               <span
-                className={`h-[1.5px] w-full origin-center rounded-full bg-current transition-transform duration-300 ease-out [will-change:transform] ${
-                  otvoren ? "translate-y-[6px] rotate-45" : ""
+                className={`absolute left-0 h-[2px] w-6 rounded-full bg-current transition-all duration-300 ease-out will-change-transform ${
+                  otvoren
+                    ? "top-1/2 -translate-y-1/2 rotate-45"
+                    : "top-[3px]"
                 }`}
               />
               <span
-                className={`h-[1.5px] w-full rounded-full bg-current transition-opacity duration-200 ${
+                className={`absolute left-0 top-1/2 h-[2px] w-6 -translate-y-1/2 rounded-full bg-current transition-opacity duration-200 ${
                   otvoren ? "opacity-0" : "opacity-100"
                 }`}
               />
               <span
-                className={`h-[1.5px] w-full origin-center rounded-full bg-current transition-transform duration-300 ease-out [will-change:transform] ${
-                  otvoren ? "-translate-y-[6px] -rotate-45" : ""
+                className={`absolute left-0 h-[2px] w-6 rounded-full bg-current transition-all duration-300 ease-out will-change-transform ${
+                  otvoren
+                    ? "top-1/2 -translate-y-1/2 -rotate-45"
+                    : "top-[11px]"
                 }`}
               />
             </span>
