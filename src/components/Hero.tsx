@@ -35,7 +35,10 @@ export function Hero() {
   const ciljRef = useRef(0); // poslednji željeni currentTime
 
   const [trajanje, setTrajanje] = useState(0);
-  const [smanjenPokret, setSmanjenPokret] = useState(false);
+  // „Statično" = bez scrub-a: dodir (telefon/tablet) ILI reduced-motion. Tada
+  // se ne učitava ni video — prikazuje se slika otvorenog cveta (hero_open.jpg).
+  // Kreće `false` (SSR/desktop podrazumevano), pa se na mount-u utvrdi.
+  const [staticno, setStaticno] = useState(false);
   // Nagoveštaj skrola nestaje čim korisnik krene. Držimo i ref da ne bismo
   // zvali setState iz Lenisove petlje na svakom kadru.
   const [skrolovano, setSkrolovano] = useState(false);
@@ -65,22 +68,24 @@ export function Hero() {
   }, [trajanje]);
 
   useEffect(() => {
-    const v = videoRef.current;
-    if (!v) return;
-
+    // Odredi statični režim NEZAVISNO od videa — na mobilnom video ni ne
+    // postoji, pa detekcija mora da radi i kad je `videoRef` prazan.
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    setSmanjenPokret(reduced);
+    const dodir = window.matchMedia("(pointer: coarse)").matches;
+    const jeStaticno = reduced || dodir;
+    setStaticno(jeStaticno);
 
-    const spremiTrajanje = () => {
-      setTrajanje(v.duration || 0);
-      if (reduced) v.currentTime = v.duration; // statično: otvoren cvet
-    };
+    // Statično → nema videa (renderuje se slika otvorenog cveta), nema scrub-a.
+    if (jeStaticno) return;
+
+    const v = videoRef.current;
+    if (!v) return;
+
+    const spremiTrajanje = () => setTrajanje(v.duration || 0);
     if (v.readyState >= 1) spremiTrajanje();
     else v.addEventListener("loadedmetadata", spremiTrajanje, { once: true });
-
-    if (reduced) return;
 
     // iOS/Safari ponekad ne dozvoli premotavanje dok se video jednom ne „otključa".
     v.play().then(() => v.pause()).catch(() => {});
@@ -109,9 +114,9 @@ export function Hero() {
   // deps su obavezni — bez njih useLenis drži stari closure (trajanje=0).
   useLenis(
     () => {
-      if (!smanjenPokret) premotaj();
+      if (!staticno) premotaj();
     },
-    [premotaj, smanjenPokret],
+    [premotaj, staticno],
   );
 
   const nagibPonuda = useMagnetniNagib<HTMLAnchorElement>();
@@ -120,10 +125,7 @@ export function Hero() {
   const kasni = (ms: number) => ({ "--kasni": `${ms}ms` }) as CSSProperties;
 
   return (
-    <section
-      ref={stazaRef}
-      className="relative h-[200vh] motion-reduce:h-dvh"
-    >
+    <section ref={stazaRef} className="relative hero-staza">
       {/* Lepljivi sloj — ostaje na ekranu dok se kroz stazu skroluje */}
       <div className="sticky top-0 flex h-dvh items-center overflow-hidden">
         {/* Video pozadina.
@@ -134,18 +136,32 @@ export function Hero() {
             dok je kursor na navu. Zaseban stacking context spljošti video i
             zastore u jednu grupu, pa im se redosled ne može promeniti. */}
         <div className="absolute inset-0 -z-10 isolate">
-          <video
-            ref={videoRef}
-            className="h-full w-full object-cover"
-            muted
-            playsInline
-            preload="auto"
-            poster="/hero_start.jpg"
-            aria-hidden="true"
-          >
-            {/* all-intra, skraćen na sam deo otvaranja — glatko premotavanje na skrol */}
-            <source src="/hero_scrub.mp4" type="video/mp4" />
-          </video>
+          {/* Statično (dodir/reduced-motion) → slika otvorenog cveta, BEZ
+              učitavanja 2.2MB videa. Desktop → scrub video. `staticno` kreće
+              false (SSR), pa se posle mount-a na mobilnom video demontira i
+              prekida eventualni fetch. */}
+          {staticno ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src="/hero_open.jpg"
+              alt=""
+              aria-hidden="true"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              className="h-full w-full object-cover"
+              muted
+              playsInline
+              preload="auto"
+              poster="/hero_start.jpg"
+              aria-hidden="true"
+            >
+              {/* all-intra, skraćen na sam deo otvaranja — glatko premotavanje na skrol */}
+              <source src="/hero_scrub.mp4" type="video/mp4" />
+            </video>
+          )}
 
           {/* Zastor — MERENO, ne procenjivano. U centralnoj zoni videa ima i
               vrlo tamnih piksela (luminansa 0.032), pa ink tekst bez zastora
@@ -212,7 +228,7 @@ export function Hero() {
             Nestaje kad se scrub završi (isti prag kao „oživljavanje" nava). */}
         <div
           aria-hidden="true"
-          className={`pointer-events-none absolute inset-x-0 bottom-8 transition-opacity duration-500 motion-reduce:hidden ${
+          className={`hero-nagovestaj pointer-events-none absolute inset-x-0 bottom-8 transition-opacity duration-500 motion-reduce:hidden ${
             skrolovano ? "opacity-0" : "opacity-100"
           }`}
         >

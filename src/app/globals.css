@@ -469,6 +469,26 @@
     }
   }
 
+  /*
+    Hero „staza" — visoka 200vh na desktopu (kroz nju se premotava video na
+    skrol). Na dodiru (telefon/tablet) i uz reduced-motion scrub je isključen
+    i prikazuje se statična slika otvorenog cveta (vidi Hero.tsx), pa se staza
+    skuplja na jedan ekran — nema mrtvog skrola. Media upit drži visinu tačnom
+    već od SSR-a (bez skoka posle hidracije).
+  */
+  .hero-staza {
+    height: 200vh;
+  }
+  @media (prefers-reduced-motion: reduce), (pointer: coarse) {
+    .hero-staza {
+      height: 100dvh;
+    }
+    /* „Skrolujte" nagoveštaj nema čemu da vodi kad je scrub isključen. */
+    .hero-nagovestaj {
+      display: none !important;
+    }
+  }
+
   /* Sitni verzal nadnaslov — ponavlja se kroz sekcije */
   .nadnaslov {
     font-family: var(--font-telo);
@@ -557,9 +577,14 @@
   /* Tekst pređe u drugu boju kad ga popuna stigne (kašnjenje 190ms — bez
      njega bi kontrast pao u međukoraku, npr. belo na beloj popuni).
      Ostaje tako dok traje hover; pri napuštanju se vraća odmah. */
-  .dugme-tecno:hover > .dt-oznaka {
-    color: var(--dt-tekst-hover);
-    transition-delay: 190ms;
+  /* Hover efekti SAMO na uređajima sa mišem. Na dodiru `:hover` ostaje
+     „zaglavljen" posle tapa (popuna ne siđe dok ne dodirneš drugde) — što
+     izgleda kao bag. Zato je cela hover mehanika iza (hover: hover). */
+  @media (hover: hover) {
+    .dugme-tecno:hover > .dt-oznaka {
+      color: var(--dt-tekst-hover);
+      transition-delay: 190ms;
+    }
   }
 
   /*
@@ -598,8 +623,10 @@
     do kraja bez obzira na kursor. Probano 18.07.2026 (belo je prolazilo naviše
     i izlazilo) — Vukašin je tražio da stoji i čeka, pa je vraćeno.
   */
-  .dugme-tecno:hover::before {
-    transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+  @media (hover: hover) {
+    .dugme-tecno:hover::before {
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+    }
   }
 
   /*
@@ -620,8 +647,10 @@
     pointer-events: none;
   }
 
-  .dugme-tecno:hover {
-    box-shadow: 0 12px 28px -6px var(--dt-glow);
+  @media (hover: hover) {
+    .dugme-tecno:hover {
+      box-shadow: 0 12px 28px -6px var(--dt-glow);
+    }
   }
 
   /* Pozadina dugmeta se NE menja na hover — ruža ostaje ispod bele popune, pa
@@ -629,8 +658,12 @@
      pozadine (`background 0s 430ms`) je uklonjen: pravio je da dugme trajno
      ostane belo. Tanku ivicu koju je krpio sada pokriva ring na ::after. */
 
-  .dugme-tecno:active {
-    scale: 0.96;
+  /* „Squish" na klik samo za miš — na dodiru je klik-animacija isključena
+     (Vukašinov zahtev, uz gornji sticky-hover fix). */
+  @media (hover: hover) {
+    .dugme-tecno:active {
+      scale: 0.96;
+    }
   }
 
   /* Nav „roll" — na hover se labela otkotrlja nagore, duplikat uđe odozdo

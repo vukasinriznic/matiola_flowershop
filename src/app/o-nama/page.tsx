@@ -30,7 +30,7 @@ const TEKST_ZA_POTVRDU = {
     "nedelje stiglo.",
   prica:
     "Počelo je iz ljubavi prema cveću i jedne male tezge na pijaci. Danas je " +
-    "to radnja u Žičkoj, ali se ništa bitno nije promenilo: i dalje sami " +
+    "to radnja u Žičkoj, ali se ništa bitno nije promenilo - i dalje sami " +
     "biramo svaki cvet i sami vezujemo svaki buket.",
   odnosPremaKupcima:
     "Volimo kad nam se javite i ispričate za koga je buket. Iz toga se " +

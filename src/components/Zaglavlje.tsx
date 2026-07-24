@@ -156,7 +156,7 @@ export function Zaglavlje() {
               className="flex h-3.5 w-6 flex-col justify-between"
             >
               <span
-                className={`h-[1.5px] w-full origin-center rounded-full bg-current transition-transform duration-300 ease-out ${
+                className={`h-[1.5px] w-full origin-center rounded-full bg-current transition-transform duration-300 ease-out [will-change:transform] ${
                   otvoren ? "translate-y-[6px] rotate-45" : ""
                 }`}
               />
@@ -166,7 +166,7 @@ export function Zaglavlje() {
                 }`}
               />
               <span
-                className={`h-[1.5px] w-full origin-center rounded-full bg-current transition-transform duration-300 ease-out ${
+                className={`h-[1.5px] w-full origin-center rounded-full bg-current transition-transform duration-300 ease-out [will-change:transform] ${
                   otvoren ? "-translate-y-[6px] -rotate-45" : ""
                 }`}
               />
