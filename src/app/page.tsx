@@ -69,7 +69,7 @@ export default async function Pocetna() {
               <h2 className="font-naslov text-4xl text-ink">Šta vam treba?</h2>
             </div>
           </Otkrij>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {kategorije.map((k, i) => (
               <Otkrij key={k.slug} kasnjenje={(i % 3) * 80}>
                 <KategorijaPlocica

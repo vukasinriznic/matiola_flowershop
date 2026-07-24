@@ -147,13 +147,30 @@ export function Zaglavlje() {
             aria-label={otvoren ? "Zatvori meni" : "Otvori meni"}
             className={`-mr-1 cursor-pointer p-2 text-ink transition-colors duration-200 md:hidden${halo}`}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-              {otvoren ? (
-                <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
-              ) : (
-                <path d="M3 7h18M3 12h18M3 17h18" strokeLinecap="round" />
-              )}
-            </svg>
+            {/* Tri crtice koje se glatko presavijaju u „X": gornja i donja se
+                spuste u centar i zarotiraju (±45°), srednja izbledi. Flex-column
+                drži razmak, pa transform (translate+rotate) ostaje slobodan za
+                animaciju — nema sukoba sa centriranjem. */}
+            <span
+              aria-hidden="true"
+              className="flex h-3.5 w-6 flex-col justify-between"
+            >
+              <span
+                className={`h-[1.5px] w-full origin-center rounded-full bg-current transition-transform duration-300 ease-out ${
+                  otvoren ? "translate-y-[6px] rotate-45" : ""
+                }`}
+              />
+              <span
+                className={`h-[1.5px] w-full rounded-full bg-current transition-opacity duration-200 ${
+                  otvoren ? "opacity-0" : "opacity-100"
+                }`}
+              />
+              <span
+                className={`h-[1.5px] w-full origin-center rounded-full bg-current transition-transform duration-300 ease-out ${
+                  otvoren ? "-translate-y-[6px] -rotate-45" : ""
+                }`}
+              />
+            </span>
           </button>
         </nav>
 
@@ -165,6 +182,17 @@ export function Zaglavlje() {
             className="mt-2 rounded-3xl border border-akcent/15 bg-canvas/90 p-3 shadow-[0_12px_34px_-12px_rgba(43,19,24,0.35)] backdrop-blur-2xl md:hidden"
           >
             <ul className="flex flex-col gap-1">
+              {/* „Početna" postoji SAMO u mobilnom meniju — na desktopu se do
+                  nje ide klikom na logo, pa je nema u `veze` (deljeno sa nav-om). */}
+              <li>
+                <Link
+                  href="/"
+                  onClick={() => setOtvoren(false)}
+                  className="block rounded-2xl px-4 py-3 text-base text-ink transition-colors duration-200 hover:bg-sekcija hover:text-akcent"
+                >
+                  Početna
+                </Link>
+              </li>
               {veze.map((v) => (
                 <li key={v.href}>
                   <Link

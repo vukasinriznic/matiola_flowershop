@@ -79,13 +79,13 @@ export function KategorijaPlocica({
             aria-hidden="true"
             className="kat-paralaks pointer-events-none absolute inset-x-0 -inset-y-[10%]"
           >
-            {/* `sizes`: pločice su 2 u redu na mobilnom, 3 od `sm` naviše, u
-                mreži od najviše 1152px — bez ovoga Next šalje sliku za pun ekran. */}
+            {/* `sizes`: pločice su 1 u redu na mobilnom (pun ekran), 3 od `sm`
+                naviše, u mreži od najviše 1152px. */}
             <Image
               src={slika}
               alt=""
               fill
-              sizes="(min-width: 1024px) 368px, (min-width: 640px) 33vw, 50vw"
+              sizes="(min-width: 1024px) 368px, (min-width: 640px) 33vw, 100vw"
               style={{ objectPosition: fokus }}
               className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             />
