@@ -1,7 +1,8 @@
 "use client";
 
-import { ReactLenis } from "lenis/react";
-import { useEffect, useState } from "react";
+import { ReactLenis, useLenis } from "lenis/react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import "lenis/dist/lenis.css";
 
 /**
@@ -35,7 +36,36 @@ export function GlatkiSkrol({ children }: { children: React.ReactNode }) {
         syncTouch: false,
       }}
     >
+      <ResetSkrolNaNavigaciju />
       {children}
     </ReactLenis>
   );
+}
+
+/**
+ * Vrati skrol na vrh pri promeni rute.
+ *
+ * Next-ov App Router inače sam skroluje na vrh pri navigaciji, ali Lenis u
+ * `root` režimu upravlja skrolom prozora pa taj reset ne stigne — nova strana
+ * ostane na staroj poziciji („baci u sredinu"). Zato na promenu `pathname`
+ * ručno vraćamo Lenis na 0, `immediate` (bez animacije — ne želimo da vidimo
+ * kako strana kliza sa dna na vrh).
+ *
+ * Prvi render se preskače (`prvi` ref): tada je strana ionako na vrhu, a i
+ * čuva `#hash` skrol kad neko dođe na duboki link.
+ */
+function ResetSkrolNaNavigaciju() {
+  const lenis = useLenis();
+  const pathname = usePathname();
+  const prvi = useRef(true);
+
+  useEffect(() => {
+    if (prvi.current) {
+      prvi.current = false;
+      return;
+    }
+    lenis?.scrollTo(0, { immediate: true });
+  }, [pathname, lenis]);
+
+  return null;
 }
